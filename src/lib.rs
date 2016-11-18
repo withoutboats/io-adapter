@@ -62,14 +62,14 @@ mod _std {
 
 
         fn try_into_inner(self) -> Result<W, io::IntoInnerError<Self>> {
-            self.into_inner()
+            Self::into_inner(self)
         }
     }
 }
 
 mod _serde_json {
-    use std::io::Write;
-    use WriteAdapter;
+    use std::io::{self, Read, Write};
+    use {ReadAdapter, WriteAdapter};
 
     extern crate serde_json as json;
 
@@ -80,6 +80,16 @@ mod _serde_json {
 
         fn into_inner(self) -> W {
             self.into_inner()
+        }
+    }
+
+    impl<R: Read> ReadAdapter<R> for json::Deserializer<io::Bytes<R>> {
+        fn wrap(reader: R) -> Self {
+            json::Deserializer::new(reader.bytes())
+        }
+
+        fn into_inner(self) -> R {
+            unimplemented!()
         }
     }
 }
